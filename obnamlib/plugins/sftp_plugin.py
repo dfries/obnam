@@ -204,16 +204,19 @@ class SftpFS(obnamlib.VirtualFileSystem):
             args += ['-p', str(self.port)]
         if self.user:
             args += ['-l', self.user]
-        if self.settings and self.settings['ssh-key']:
-            args += ['-i', self.settings['ssh-key']]
-        if (self.settings and
-            self.settings['ssh-host-keys-check'] != "ssh-config"):
-            value = self.settings['ssh-host-keys-check']
-            args += ['-o', 'StrictHostKeyChecking=%s' % (value,)]
-        if self.settings and self.settings['ssh-known-hosts']:
-            args += ['-o',
-                     'UserKnownHostsFile=%s' %
-                        self.settings['ssh-known-hosts']]
+        if self.settings:
+            if self.settings['ssh-key']:
+                args += ['-i', self.settings['ssh-key']]
+            if self.settings['ssh-host-keys-check'] != "ssh-config":
+                value = self.settings['ssh-host-keys-check']
+                args += ['-o', 'StrictHostKeyChecking=%s' % (value,)]
+            if self.settings['ssh-known-hosts']:
+                args += ['-o',
+                         'UserKnownHostsFile=%s' %
+                            self.settings['ssh-known-hosts']]
+            if self.settings['ssh-options']:
+                for option in self.settings['ssh-options'].split():
+                    args += [option]
         args += [self.host, 'sftp']
 
         # prepend the executable to the argument list
@@ -705,6 +708,12 @@ class SftpPlugin(obnamlib.ObnamPlugin):
             'of "ssh" (full path is allowed, no '
             'arguments may be added)',
             metavar='EXECUTABLE',
+            group=ssh_group)
+
+        self.app.settings.string(
+            ['ssh-options'],
+            'Options added to the ssh command line, such '
+            'as -4 -6 -o <ssh_option>.',
             group=ssh_group)
 
         self.app.settings.boolean(
