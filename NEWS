@@ -23,6 +23,9 @@ New features:
   semantics as `obnam restore`.  Now a restore with `--to` can be
   verified.
 
+* David Fries changed restore to set the group ownership if possible
+  even when not root.  No warnings are issued if the attempt fails.
+
 Bug fixes:
 
 * The Obnam SFTP plugin would loop infinitely if it lost the
