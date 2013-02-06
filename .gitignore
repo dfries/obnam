@@ -1,3 +1,16 @@
+*.pyc
+.*.swp
+build
+debian/files
+debian/obnam.debhelper.log
+debian/obnam.postinst.debhelper
+debian/obnam.prerm.debhelper
+debian/obnam.substvars
+debian/obnam/
+obnam-benchmark.1
+obnam.1
+obnamlib/_obnam.so
+
 manual/*.html
 manual/*.pdf
 yarns/*.html
