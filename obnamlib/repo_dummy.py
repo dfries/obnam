@@ -657,6 +657,7 @@ class RepositoryFormatDummy(obnamlib.RepositoryInterface):
             obnamlib.REPO_FILE_GID,
             obnamlib.REPO_FILE_BLOCKS,
             obnamlib.REPO_FILE_DEV,
+            obnamlib.REPO_FILE_RDEV,
             obnamlib.REPO_FILE_INO,
             obnamlib.REPO_FILE_USERNAME,
             obnamlib.REPO_FILE_GROUPNAME,

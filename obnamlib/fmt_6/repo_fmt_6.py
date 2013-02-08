@@ -903,6 +903,7 @@ class RepositoryFormat6(obnamlib.RepositoryInterface):
             obnamlib.REPO_FILE_XATTR_BLOB: 'xattr',
             obnamlib.REPO_FILE_BLOCKS: 'st_blocks',
             obnamlib.REPO_FILE_DEV: 'st_dev',
+            obnamlib.REPO_FILE_RDEV: 'st_rdev',
             obnamlib.REPO_FILE_INO: 'st_ino',
             obnamlib.REPO_FILE_MD5: 'md5',
             

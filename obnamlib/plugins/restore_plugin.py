@@ -199,6 +199,7 @@ class RestorePlugin(obnamlib.ObnamPlugin):
             st_mtime_nsec=K(obnamlib.REPO_FILE_MTIME_NSEC),
             st_blocks=K(obnamlib.REPO_FILE_BLOCKS),
             st_dev=K(obnamlib.REPO_FILE_DEV),
+            st_rdev=K(obnamlib.REPO_FILE_RDEV),
             st_gid=K(obnamlib.REPO_FILE_GID),
             st_ino=K(obnamlib.REPO_FILE_INO),
             st_mode=K(obnamlib.REPO_FILE_MODE),
@@ -347,7 +348,7 @@ class RestorePlugin(obnamlib.ObnamPlugin):
     def restore_device(self, gen, filename, metadata):
         logging.debug('restoring device %s' % filename)
         if self.write_ok:
-            self.fs.mknod('./' + filename, metadata.st_mode)
+            self.fs.mknod('./' + filename, metadata.st_mode, metadata.st_rdev)
 
     def report_stats(self):
         size_table = [

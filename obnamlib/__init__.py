@@ -150,6 +150,7 @@ from repo_interface import (
     REPO_FILE_XATTR_BLOB,
     REPO_FILE_BLOCKS,
     REPO_FILE_DEV,
+    REPO_FILE_RDEV,
     REPO_FILE_INO,
     REPO_FILE_MD5,
     REPO_FILE_INTEGER_KEYS)

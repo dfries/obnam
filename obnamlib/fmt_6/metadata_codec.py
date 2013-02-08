@@ -36,6 +36,9 @@ metadata_format = struct.Struct('!Q' +  # flags
                                 'Q' +   # len of md5
                                 'Q' +   # len of xattr
                                 '')
+# to preserve binary compatibility, add after the strings
+extend_format = struct.Struct('Q'   +   # st_rdev
+                                '')
 
 def encode_metadata(metadata):
     flags = 0
@@ -62,6 +65,7 @@ def encode_metadata(metadata):
                                       len(metadata.target or ''),
                                       len(metadata.md5 or ''),
                                       len(metadata.xattr or ''))
+        extend_pack = extend_format.pack(metadata.st_rdev or 0)
     except TypeError, e: # pragma: no cover
         logging.error('ERROR: Packing error due to %s' % str(e))
         logging.error('ERROR: st_mode=%s' % repr(metadata.st_mode))
@@ -89,7 +93,8 @@ def encode_metadata(metadata):
              (metadata.username or '') +
              (metadata.target or '') +
              (metadata.md5 or '') +
-             (metadata.xattr or ''))
+             (metadata.xattr or '') +
+             extend_pack)
 
 
 def decode_metadata(encoded):
@@ -134,5 +139,12 @@ def decode_metadata(encoded):
     decode_string('target')
     decode_string('md5')
     decode_string('xattr')
+
+    # reset to start counting off extend items
+    if pos[1] + extend_format.size <= len(encoded):
+        items = extend_format.unpack(encoded[pos[1] : pos[1] +
+            extend_format.size])
+        pos[0] = 0
+        decode_integer('st_rdev')
 
     return metadata

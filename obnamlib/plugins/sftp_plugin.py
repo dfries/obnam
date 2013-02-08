@@ -404,6 +404,7 @@ class SftpFS(obnamlib.VirtualFileSystem):
             'st_blocks': (st.st_size / 512) +
                          (1 if st.st_size % 512 else 0),
             'st_dev': 0,
+            'st_rdev': 0,
             'st_ino': int(hashlib.md5(pathname).hexdigest()[:8], 16),
             'st_nlink': 1,
         }

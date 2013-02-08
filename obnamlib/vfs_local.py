@@ -273,10 +273,11 @@ class LocalFS(obnamlib.VirtualFileSystem):
     def isdir(self, pathname):
         return os.path.isdir(self.join(pathname))
 
-    def mknod(self, pathname, mode):
+    def mknod(self, pathname, mode, rdev=0):
         tracing.trace('pathmame=%s', pathname)
         tracing.trace('mode=%o', mode)
-        os.mknod(self.join(pathname), mode)
+        tracing.trace('rdev=%o', rdev)
+        os.mknod(self.join(pathname), mode, rdev)
 
     def mkdir(self, pathname):
         tracing.trace('mkdir %s', pathname)
