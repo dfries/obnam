@@ -19,6 +19,10 @@ New features:
   it not check for unused chunks when it's useless to do so, because
   of various `--fsck-skip` settings are used.
 
+* David Fries added the `--to` option to `obnam verify` with the same
+  semantics as `obnam restore`.  Now a restore with `--to` can be
+  verified.
+
 Bug fixes:
 
 * The Obnam SFTP plugin would loop infinitely if it lost the
