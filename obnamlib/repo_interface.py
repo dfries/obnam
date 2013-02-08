@@ -67,6 +67,7 @@ _integer_keys = [
     "REPO_FILE_GID",
     "REPO_FILE_BLOCKS",
     "REPO_FILE_DEV",
+    "REPO_FILE_RDEV",
     "REPO_FILE_INO",
 ]
 
@@ -1503,6 +1504,7 @@ class RepositoryInterfaceTests(unittest.TestCase): # pragma: no cover
             REPO_FILE_GID,
             REPO_FILE_BLOCKS,
             REPO_FILE_DEV,
+            REPO_FILE_RDEV,
             REPO_FILE_INO,
             REPO_FILE_USERNAME,
             REPO_FILE_GROUPNAME,

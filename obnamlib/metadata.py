@@ -34,7 +34,7 @@ metadata_verify_fields = (
 )
 metadata_fields = metadata_verify_fields + (
     'st_blocks', 'st_dev', 'st_gid', 'st_ino',  'st_atime_sec',
-    'st_atime_nsec', 'md5',
+    'st_atime_nsec', 'md5', 'st_rdev'
 )
 
 
@@ -63,7 +63,7 @@ class Metadata(object):
         st_mtime_sec    yes     used to restore mtime
         st_mtime_nsec   yes     used to restore mtime
         st_nlink        yes     used to restore hardlinks
-        st_rdev         no      no use (correct me if I'm wrong about this)
+        st_rdev         yes     major/minor for character and block device files
         st_size         yes     user needs it to see size of file in backup
         st_uid          yes     used to restored ownership
 

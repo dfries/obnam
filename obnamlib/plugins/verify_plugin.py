@@ -195,6 +195,8 @@ class VerifyPlugin(obnamlib.ObnamPlugin):
                     (field_name, repr(v1), repr(v2)))
 
         X(obnamlib.REPO_FILE_MODE, 'st_mode')
+        if stat.S_ISBLK(live_data.st_mode) or stat.S_ISCHR(live_data.st_mode):
+            X(obnamlib.REPO_FILE_RDEV, 'st_rdev')
         X(obnamlib.REPO_FILE_MTIME_SEC, 'st_mtime_sec')
         X(obnamlib.REPO_FILE_MTIME_NSEC, 'st_mtime_nsec')
         X(obnamlib.REPO_FILE_NLINK, 'st_nlink')

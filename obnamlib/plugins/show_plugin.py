@@ -348,6 +348,8 @@ class ShowPlugin(obnamlib.ObnamPlugin):
             gen_id, filename, obnamlib.REPO_FILE_USERNAME)
         groupname = self.repo.get_file_key(
             gen_id, filename, obnamlib.REPO_FILE_GROUPNAME)
+        rdev = self.repo.get_file_key(
+            gen_id, filename, obnamlib.REPO_FILE_RDEV)
         size = self.repo.get_file_key(
             gen_id, filename, obnamlib.REPO_FILE_SIZE)
 
@@ -379,6 +381,10 @@ class ShowPlugin(obnamlib.ObnamPlugin):
             name = '%s -> %s' % (filename, target)
         else:
             name = filename
+
+        if stat.S_ISBLK(mode) or stat.S_ISCHR(mode):
+            # 8 bit major, 8 bit minor
+            size = str(rdev >> 8) + ", " + str(rdev & 0xff)
 
         return (perms,
                  str(nlink),

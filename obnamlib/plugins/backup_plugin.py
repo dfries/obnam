@@ -840,6 +840,7 @@ class BackupPlugin(obnamlib.ObnamPlugin):
             'st_size',
             'st_uid',
             'st_gid',
+            'st_rdev',
             )
 
         for field in must_be_equal:
@@ -874,6 +875,8 @@ class BackupPlugin(obnamlib.ObnamPlugin):
                 gen, pathname, obnamlib.REPO_FILE_UID),
             st_gid=self.repo.get_file_key(
                 gen, pathname, obnamlib.REPO_FILE_GID),
+            st_rdev=self.repo.get_file_key(
+                gen, pathname, obnamlib.REPO_FILE_RDEV),
             xattr=self.repo.get_file_key(
                 gen, pathname, obnamlib.REPO_FILE_XATTR_BLOB))
 
@@ -892,6 +895,7 @@ class BackupPlugin(obnamlib.ObnamPlugin):
             ('st_gid', obnamlib.REPO_FILE_GID),
             ('st_blocks', obnamlib.REPO_FILE_BLOCKS),
             ('st_dev', obnamlib.REPO_FILE_DEV),
+            ('st_rdev', obnamlib.REPO_FILE_RDEV),
             ('st_ino', obnamlib.REPO_FILE_INO),
             ('username', obnamlib.REPO_FILE_USERNAME),
             ('groupname', obnamlib.REPO_FILE_GROUPNAME),
