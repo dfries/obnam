@@ -36,6 +36,13 @@ class Fail(obnamlib.ObnamError):
 
 class VerifyPlugin(obnamlib.ObnamPlugin):
 
+    # A note about the implementation: we need to make sure all the
+    # files we verify are against the target directory. We do this by
+    # prefixing all filenames we write to with './', and then using
+    # os.path.join to put the target directory name at the beginning.
+    # The './' business is necessary because os.path.join(a,b) returns
+    # just b if b is an absolute path.
+
     def enable(self):
         self.app.add_subcommand('verify', self.verify,
                                 arg_synopsis='[DIRECTORY]...')
@@ -60,17 +67,23 @@ class VerifyPlugin(obnamlib.ObnamPlugin):
         if not args:
             logging.debug('no roots/args given, so verifying everything')
             args = ['/']
+        if not self.app.settings['to']:
+            t = urlparse.urlparse(args[0])
+            logging.debug('t: %s' % repr(t))
+            root_url = urlparse.urlunparse((t[0], t[1], '/', t[3], t[4], t[5]))
+            self.app.settings['to'] = root_url
+        # allows using a base directory different from / (same as restore)
+        logging.debug('verifying to %s' % self.app.settings['to'])
+        # path in the repository to verify
         logging.debug('verifying what: %s' % repr(args))
 
         self.repo = self.app.get_repository_object()
         client_name = self.app.settings['client-name']
         self.fs = self.app.fsf.new(args[0])
         self.fs.connect()
-        t = urlparse.urlparse(args[0])
-        root_url = urlparse.urlunparse((t[0], t[1], '/', t[3], t[4], t[5]))
-        logging.debug('t: %s' % repr(t))
-        logging.debug('root_url: %s' % repr(root_url))
-        self.fs.reinit(root_url)
+
+        logging.debug('root_url: %s' % repr(self.app.settings['to']))
+        self.fs.reinit(self.app.settings['to'])
 
         self.failed = False
         gen_id = self.repo.interpret_generation_spec(
@@ -158,7 +171,7 @@ class VerifyPlugin(obnamlib.ObnamPlugin):
 
     def verify_metadata(self, gen_id, filename):
         try:
-            live_data = obnamlib.read_metadata(self.fs, filename)
+            live_data = obnamlib.read_metadata(self.fs, './' + filename)
         except OSError, e:
             raise Fail(
                 filename=filename,
@@ -191,7 +204,7 @@ class VerifyPlugin(obnamlib.ObnamPlugin):
 
     def verify_regular_file(self, gen_id, filename):
         logging.debug('verifying regular %s' % filename)
-        f = self.fs.open(filename, 'r')
+        f = self.fs.open('./' + filename, 'r')
 
         chunkids = self.repo.get_file_chunk_ids(gen_id, filename)
         if not self.verify_chunks(f, chunkids):
