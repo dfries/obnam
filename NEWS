@@ -32,6 +32,8 @@ New features:
 * David Fries change Obnam so it can backup and restore the major and
   minor numbers of character and block special files.
 
+* David Fries filled in the file permission mode bits.
+
 Bug fixes:
 
 * The Obnam SFTP plugin would loop infinitely if it lost the
