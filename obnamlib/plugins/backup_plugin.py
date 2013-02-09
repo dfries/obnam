@@ -443,8 +443,8 @@ class BackupPlugin(obnamlib.ObnamPlugin):
             self.app.hooks.call('backup-finished', args, self.progress)
             self.app.dump_memory_profile('at end of backup run')
         except BaseException, e:
-            logging.debug('Handling exception %s' % str(e))
-            logging.debug(traceback.format_exc())
+            logging.warning('Handling exception %s' % str(e))
+            logging.warning(traceback.format_exc())
             self.unlock_when_error()
             raise
 
