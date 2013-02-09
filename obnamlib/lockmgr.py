@@ -16,6 +16,7 @@
 
 import os
 import time
+import logging
 
 import obnamlib
 
@@ -31,7 +32,7 @@ class LockManager(object):
         data = data + ["client=" + client]
         data = data + ["pid=%d" % os.getpid()]
         data = data + self._read_boot_id()
-        self.data = '\r\n'.join(data)
+        self.data = '\n'.join(data)
 
     def _read_boot_id(self): # pragma: no cover
         try:
@@ -59,15 +60,21 @@ class LockManager(object):
 
     def _lock_one(self, dirname):
         started = self._time()
+        # the time the lock was requested (or the start if waiting)
+        data = self.data + '\n' + "request=%s" % time.ctime(started)
+        warn = True
         while True:
             lock_name = self._lockname(dirname)
             try:
-                self._fs.lock(lock_name, self.data)
+                self._fs.lock(lock_name, data)
             except obnamlib.LockFail:
                 if self._time() - started >= self.timeout:
                     raise obnamlib.LockFail(
                         lock_name=lock_name,
-                        reason='timeout')
+                        reason='timeout - %s' % self._fs.cat(lock_name, False))
+                elif warn:
+                    logging.warning('\nWaiting on lock ' + lock_name)
+                    warn = False
             else:
                 return
             self._sleep()
