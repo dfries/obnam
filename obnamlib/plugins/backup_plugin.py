@@ -454,12 +454,12 @@ class BackupPlugin(obnamlib.ObnamPlugin):
     def unlock_when_error(self):
         try:
             if self.got_client_lock:
+                if not self.got_chunk_indexes_lock:
+                    logging.info(
+                        'locking shared B_trees for unlock_client')
+                    self.repo.lock_chunk_indexes()
                 logging.info('Attempting to unlock client because of error')
                 self.repo.unlock_client(self.client_name)
-            if self.got_chunk_indexes_lock:
-                logging.info(
-                    'Attempting to unlock shared trees because of error')
-                self.repo.unlock_chunk_indexes()
         except BaseException, e2:
             logging.warning(
                 'Error while unlocking due to error: %s' % str(e2))
