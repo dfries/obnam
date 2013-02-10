@@ -305,48 +305,53 @@ class FsckPlugin(obnamlib.ObnamPlugin):
 
         self.repo = self.app.get_repository_object()
 
-        self.repo.lock_client_list()
-        client_names = self.repo.get_client_names()
-        for client_name in client_names:
-            self.repo.lock_client(client_name)
-        self.repo.lock_chunk_indexes()
+        try:
+            self.repo.lock_client_list()
+            client_names = self.repo.get_client_names()
+            for client_name in client_names:
+                self.repo.lock_client(client_name)
+            self.repo.lock_chunk_indexes()
 
-        self.errors = 0
-        self.chunkids_seen = set()
-        self.work_items = []
-        self.add_item(CheckRepository(), append=True)
+            self.errors = 0
+            self.chunkids_seen = set()
+            self.work_items = []
+            self.add_item(CheckRepository(), append=True)
 
-        final_items = []
-        if not any(self.app.settings['fsck-' + s] for s in
-                   ('ignore-chunks', 'skip-files', 'skip-dirs',
-                    'skip-generations', 'last-generation-only',
-                    'ignore-client')):
-            final_items.append(CheckForExtraChunks(rm_unused_chunks))
+            final_items = []
+            if not any(self.app.settings['fsck-' + s] for s in
+                       ('ignore-chunks', 'skip-files', 'skip-dirs',
+                        'skip-generations', 'last-generation-only',
+                        'ignore-client')):
+                final_items.append(CheckForExtraChunks(rm_unused_chunks))
 
-        while self.work_items:
-            work = self.work_items.pop(0)
-            logging.debug('doing: %s' % str(work))
-            self.app.ts['item'] = work
-            self.app.ts.increase('this_item', 1)
-            pos = 0
-            for more in work.do() or []:
-                self.add_item(more, pos=pos)
-                pos += 1
-            if not self.work_items:
-                for work in final_items:
-                    self.add_item(work, append=True)
-                final_items = []
+            while self.work_items:
+                work = self.work_items.pop(0)
+                logging.debug('doing: %s' % str(work))
+                self.app.ts['item'] = work
+                self.app.ts.increase('this_item', 1)
+                pos = 0
+                for more in work.do() or []:
+                    self.add_item(more, pos=pos)
+                    pos += 1
+                if not self.work_items:
+                    for work in final_items:
+                        self.add_item(work, append=True)
+                    final_items = []
 
-        if rm_unused_chunks:
-            self.repo.commit_chunk_indexes()
-        else:
-            self.repo.unlock_chunk_indexes()
-        for client_name in client_names:
-            self.repo.unlock_client(client_name)
-        self.repo.unlock_client_list()
+            if rm_unused_chunks:
+                self.repo.commit_chunk_indexes()
 
-        self.repo.close()
-        self.app.ts.finish()
+        finally:
+            # Clean up locks no matter if it is clean exit or not, otherwise
+            # the repository is left worse off (locked) than when fsck found it.
+            if not rm_unused_chunks:
+                self.repo.unlock_chunk_indexes()
+            for client_name in client_names:
+                self.repo.unlock_client(client_name)
+            self.repo.unlock_client_list()
+
+            self.repo.close()
+            self.app.ts.finish()
 
         if self.errors:
             sys.exit(1)

@@ -365,13 +365,14 @@ class BackupPlugin(obnamlib.ObnamPlugin):
             self.repo.unlock_chunk_indexes()
             self.got_chunk_indexes_lock = False
 
+        # required if there is an exception before the assignment
+        self.repo = None
         self.chunkid_pool = ChunkidPool()
         try:
             if not self.pretend:
                 self.progress.what('starting new generation')
                 self.new_generation = self.repo.create_generation(
                     self.client_name)
-            self.fs = None
             roots = self.app.settings['root'] + args
             if not roots:
                 raise BackupRootMissingError()
@@ -434,19 +435,21 @@ class BackupPlugin(obnamlib.ObnamPlugin):
                                        'commiting shared B-trees')
                     self.repo.commit_chunk_indexes()
 
-            self.progress.what('closing connection to repository')
-            self.repo.close()
-            self.progress.clear()
-            self.progress.report_stats(self.repo.get_fs())
+        except BaseException, e:
+            logging.debug('Handling exception %s' % str(e))
+            logging.debug(traceback.format_exc())
+            self.unlock_when_error()
+            raise
 
+        finally:
+            if self.repo:
+                self.progress.what('closing connection to repository')
+                self.repo.close()
+                self.progress.clear()
+                self.progress.report_stats(self.repo.get_fs())
             logging.info('Backup finished.')
             self.app.hooks.call('backup-finished', args, self.progress)
             self.app.dump_memory_profile('at end of backup run')
-        except BaseException, e:
-            logging.warning('Handling exception %s' % str(e))
-            logging.warning(traceback.format_exc())
-            self.unlock_when_error()
-            raise
 
         if self.progress.errors:
             raise BackupErrors()

@@ -27,6 +27,9 @@ class LockManager(object):
 
     def __init__(self, fs, timeout, client):
         self._fs = fs
+        self._held_locks = set()
+        if 'fs' in dir(self._fs) and self._fs.fs:
+            self._fs.fs.lockmgr = self
         self.timeout = timeout
         data = ["[lockfile]"]
         data = data + ["client=" + client]
@@ -63,17 +66,21 @@ class LockManager(object):
         # the time the lock was requested (or the start if waiting)
         data = self.data + '\n' + "request=%s" % time.ctime(started)
         warn = True
+        if dirname in self._held_locks:
+            print('\ndouble lock taken error')
+            raise obnamlib.LockFail('Double lock for ' + dirname)
         while True:
             lock_name = self._lockname(dirname)
             try:
                 self._fs.lock(lock_name, data)
+                self._held_locks.add(dirname)
             except obnamlib.LockFail:
                 if self._time() - started >= self.timeout:
                     raise obnamlib.LockFail(
                         lock_name=lock_name,
                         reason='timeout - %s' % self._fs.cat(lock_name, False))
                 elif warn:
-                    logging.warning('\nWaiting on lock ' + lock_name)
+                    print('\nWaiting on lock ' + lock_name)
                     warn = False
             else:
                 return
@@ -81,6 +88,7 @@ class LockManager(object):
 
     def _unlock_one(self, dirname):
         self._fs.unlock(self._lockname(dirname))
+        self._held_locks.remove(dirname)
 
     def is_locked(self, dirname):
         '''Is the given directory locked?
@@ -108,3 +116,16 @@ class LockManager(object):
         for dirname in self.sort(dirnames):
             self._unlock_one(dirname)
 
+    def force_unlock_all(self):
+        '''Unlock ALL directories this lock manager has locked.
+        This is only safe to be called when there won't be any more accesses
+        to the repository, such as right before closing the repository.
+        It is expected there will only be locks to close for abnormal
+        termination, as such any locks fund are complained about.
+        '''
+        print('')
+        for d in self._held_locks:
+            print("Forcing lock removal for " + d)
+        self.unlock(self._held_locks)
+        # Don't clear _held_locks, that way lock will complain if this
+        # lock manager continues to be used.

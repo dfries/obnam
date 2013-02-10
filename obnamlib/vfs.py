@@ -104,6 +104,8 @@ class VirtualFileSystem(object):
 
     def close(self):
         '''Close connection to filesystem.'''
+        if 'lockmgr' in dir(self):
+            self.lockmgr.force_unlock_all()
         self.log_stats()
 
     def reinit(self, new_baseurl, create=False):
