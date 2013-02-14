@@ -318,12 +318,14 @@ class SftpFS(obnamlib.VirtualFileSystem):
 
     def close(self):
         logging.debug('SftpFS.close called')
+        # Close VirtualFileSystem first in case it needs to do any cleanup
+        # while the transport is still in place.
+        obnamlib.VirtualFileSystem.close(self)
         self.sftp.close()
         self.sftp = None
         if self.transport:
             self.transport.close()
             self.transport = None
-        obnamlib.VirtualFileSystem.close(self)
         self._delay()
 
     @ioerror_to_oserror
