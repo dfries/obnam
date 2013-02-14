@@ -123,9 +123,10 @@ class LockManager(object):
         It is expected there will only be locks to close for abnormal
         termination, as such any locks fund are complained about.
         '''
-        print('')
-        for d in self._held_locks:
-            print("Forcing lock removal for " + d)
-        self.unlock(self._held_locks)
+        if len(self._held_locks):
+            print('')
+            for d in self._held_locks:
+                print("Forcing lock removal for " + d)
+            self.unlock(self._held_locks)
         # Don't clear _held_locks, that way lock will complain if this
         # lock manager continues to be used.
