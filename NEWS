@@ -34,6 +34,9 @@ New features:
 
 * David Fries filled in the file permission mode bits.
 
+* SSHChannelAdapter now reports the number of bytes sent and received
+  (before ssh encryption), from David Fries
+
 Bug fixes:
 
 * The Obnam SFTP plugin would loop infinitely if it lost the
