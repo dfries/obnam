@@ -100,15 +100,21 @@ class SSHChannelAdapter(object):
 
     # This is inspired by the ssh.py module in bzrlib.
 
-    def __init__(self, proc):
+    def __init__(self, proc, app):
         self.proc = proc
+        self.app = app
+        self.send_bytes = 0
+        self.recv_bytes = 0
 
     def send(self, data):
+        self.send_bytes += len(data)
         return os.write(self.proc.stdin.fileno(), data)
 
     def recv(self, count):
         try:
-            return os.read(self.proc.stdout.fileno(), count)
+            data = os.read(self.proc.stdout.fileno(), count)
+            self.recv_bytes += len(data)
+            return data
         except socket.error, e:
             errnos = (
                 errno.EPIPE, errno.ECONNRESET, errno.ECONNABORTED,
@@ -124,6 +130,10 @@ class SSHChannelAdapter(object):
 
     def close(self):
         logging.debug('SSHChannelAdapter.close called')
+        msg = ('SSHChannelAdapter: sent %d, received %d bytes' %
+            (self.send_bytes, self.recv_bytes))
+        logging.info(msg)
+        self.app.ts.notify(msg)
         for func in [self.proc.stdin.close, self.proc.stdout.close,
                      self.proc.wait]:
             try:
@@ -144,10 +154,11 @@ class SftpFS(obnamlib.VirtualFileSystem):
     # for sftp transfers. I don't know why the size matters.
     chunk_size = 32 * 1024
 
-    def __init__(self, baseurl, create=False, settings=None):
+    def __init__(self, baseurl, create=False, app=None):
         obnamlib.VirtualFileSystem.__init__(self, baseurl)
         self.sftp = None
-        self.settings = settings
+        self.settings = app.settings
+        self.app = app
         self._roundtrips = 0
         self._initial_dir = None
         self.reinit(baseurl, create=create)
@@ -231,7 +242,8 @@ class SftpFS(obnamlib.VirtualFileSystem):
             return False
 
         self.transport = None
-        self.sftp = paramiko.SFTPClient(SSHChannelAdapter(proc))
+        self.sftp = paramiko.SFTPClient(SSHChannelAdapter(proc, self.app))
+
         return True
 
     def _connect_paramiko(self):
@@ -724,4 +736,4 @@ class SftpPlugin(obnamlib.ObnamPlugin):
             'use paramiko only instead',
             group=ssh_group)
 
-        self.app.fsf.register('sftp', SftpFS, settings=self.app.settings)
+        self.app.fsf.register('sftp', SftpFS, app=self.app)

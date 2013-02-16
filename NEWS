@@ -33,6 +33,9 @@ New features:
 
 * David Fries added option 'ssh-options' to pass options to ssh.
 
+* SSHChannelAdapter now reports the number of bytes sent and received
+  (before ssh encryption), from David Fries
+
 Bug fixes:
 
 * The Obnam SFTP plugin would loop infinitely if it lost the
