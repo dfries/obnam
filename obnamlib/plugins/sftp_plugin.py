@@ -100,20 +100,18 @@ class SSHChannelAdapter(object):
 
     # This is inspired by the ssh.py module in bzrlib.
 
-    def __init__(self, proc, app):
+    def __init__(self, proc, sftpfs):
         self.proc = proc
-        self.app = app
-        self.send_bytes = 0
-        self.recv_bytes = 0
+        self.sftpfs = sftpfs
 
     def send(self, data):
-        self.send_bytes += len(data)
+        self.sftpfs.send_bytes += len(data)
         return os.write(self.proc.stdin.fileno(), data)
 
     def recv(self, count):
         try:
             data = os.read(self.proc.stdout.fileno(), count)
-            self.recv_bytes += len(data)
+            self.sftpfs.recv_bytes += len(data)
             return data
         except socket.error, e:
             errnos = (
@@ -131,9 +129,9 @@ class SSHChannelAdapter(object):
     def close(self):
         logging.debug('SSHChannelAdapter.close called')
         msg = ('SSHChannelAdapter: sent %d, received %d bytes' %
-            (self.send_bytes, self.recv_bytes))
+            (self.sftpfs.send_bytes, self.sftpfs.recv_bytes))
         logging.info(msg)
-        self.app.ts.notify(msg)
+        self.sftpfs.app.ts.notify(msg)
         for func in [self.proc.stdin.close, self.proc.stdout.close,
                      self.proc.wait]:
             try:
@@ -242,7 +240,7 @@ class SftpFS(obnamlib.VirtualFileSystem):
             return False
 
         self.transport = None
-        self.sftp = paramiko.SFTPClient(SSHChannelAdapter(proc, self.app))
+        self.sftp = paramiko.SFTPClient(SSHChannelAdapter(proc, self))
 
         return True
 
