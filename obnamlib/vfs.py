@@ -86,8 +86,12 @@ class VirtualFileSystem(object):
 
     def __init__(self, baseurl):
         self.baseurl = baseurl
+        # chunk bytes read and written (deduplicated, but not yet compressed)
         self.bytes_read = 0
         self.bytes_written = 0
+        # bytes sent or received (including metadata, sft overhead etc)
+        self.send_bytes = 0
+        self.recv_bytes = 0
         logging.debug('VFS: __init__: baseurl=%s' % self.baseurl)
 
     def log_stats(self):
